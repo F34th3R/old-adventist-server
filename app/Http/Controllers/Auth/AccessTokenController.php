@@ -20,7 +20,7 @@ class AccessTokenController extends ATC
 
             //get user
             //change to 'email' if you want
-            $user = User::where('email', '=', $username)->select('code', 'name', 'email', 'role_id')->first();
+            $user = User::where('email', '=', $username)->select('id', 'code', 'name', 'email', 'role_id')->first();
 
             //generate token
             $tokenResponse = parent::issueToken($request);

@@ -17,6 +17,7 @@ class CreateAdvertisementsTable extends Migration
             $table->increments('id');
             $table->string('title');
             $table->string('code', 16)->unique();
+            $table->string('parent_code');
             $table->unsignedInteger('department_id');
             $table->string('publicationDate');
             $table->string('eventDate')->nullable();

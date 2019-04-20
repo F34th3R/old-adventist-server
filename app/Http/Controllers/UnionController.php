@@ -3,25 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Helpers\HeaderHelper;
+use App\Http\Controllers\Helpers\CodeGenerator;
+use App\Http\Controllers\Helpers\UserCRUD;
 
+use App\Http\Requests\UnionRequest;
 use App\Union;
+use App\User;
 use Illuminate\Http\Request;
 
 class UnionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
-        $data = Union::with(array('user' => function($query) {
-            $query->select('id', 'email');
-        }))->orderBy('id', 'DESC')->get();
+        try {
+            $data = Union::with(array('user' => function($query) {
+                $query->select('id', 'email');
+            }))->orderBy('id', 'DESC')->get();
+        } catch (\Exception $e) {
+            return response()->json([
+                "data" => null,
+            ], 404, HeaderHelper::$header);
+        }
         return response()->json([
             "data" => $data,
-        ], 200);
+        ], 200, HeaderHelper::$header);
     }
 
     public function nameAndCode()
@@ -42,48 +48,56 @@ class UnionController extends Controller
         ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
+    public function store(UnionRequest $request)
     {
-        //
+        $codeGenerator = new CodeGenerator();
+
+        try {
+            Union::create([
+                'name' => $request->name,
+                'user_id' => UserCRUD::create($request)->id,
+                'code' => $codeGenerator->generator('UNIONS')
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'response' => false,
+            ],404, HeaderHelper::$header);
+        }
+        return response()->json([
+            "response" => true
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Union  $union
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Union $union)
+    public function show($id)
     {
-        //
+        $data = Union::with(array('user' => function($query) {
+            $query->select('id', 'email');
+        }))->where('id', $id)
+            ->first();
+        return response()->json([
+            "data" => $data,
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Union  $union
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Union $union)
+    public function update(Request $request, Union $id)
     {
-        //
+        try {
+            $id->update([
+                'name' => $request->name,
+            ]);
+            UserCRUD::update($request);
+        } catch (\Exception $e) {
+            return response()->json([
+                'response' => false,
+            ],404, HeaderHelper::$header);
+        }
+        return response()->json([
+            "response" => true,
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Union  $union
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Union $union)
+    public function destroy(Union $id)
     {
-        //
+        UserCRUD::destroy($id);
     }
 }

@@ -51,9 +51,24 @@ class AuthController extends Controller
      */
     public function logout()
     {
-        auth()->logout();
+        $value = $request->bearerToken();
+        $id = (new Parser())->parse($value)->getHeader('jti');
 
-        return response()->json(['message' => 'Successfully logged out']);
+        $token = DB::table('oauth_access_tokens')
+            ->where('id', $id);
+
+        DB::table('oauth_refresh_tokens')
+            ->where('access_token_id', $id)->delete();
+
+        $token->update([
+            'revoked' => true
+        ]);
+
+        $token->delete();
+
+        return response()->json([
+            "response" => true,
+        ], 204);
     }
 
     /**
@@ -61,9 +76,12 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function refresh()
-    {
-        return $this->respondWithToken(auth()->refresh());
+    public function refresh(Request $request) {
+        $this->validate($request, [
+            'refresh_token' => 'required',
+        ]);
+
+        return $this->issueToken($request, 'refresh_token');
     }
 
     /**

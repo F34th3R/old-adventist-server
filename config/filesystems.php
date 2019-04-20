@@ -54,6 +54,10 @@ return [
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
         ],
+        'ad_img' => [
+            'driver' => 'local',
+            'root'   => public_path() . '/images-advertisements',
+        ],
 
         's3' => [
             'driver' => 's3',

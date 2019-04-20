@@ -3,20 +3,55 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Helpers\HeaderHelper;
+use App\Http\Controllers\Helpers\CodeGenerator;
+use App\Http\Controllers\Helpers\UserCRUD;
 
 use App\Church;
+use App\Group;
 use Illuminate\Http\Request;
 
 class ChurchController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        try {
+            $data = Church::with(array('group' => function($query) {
+                $query->select('id','name');
+            }))->with(array('user' => function($query) {
+                $query->select('id', 'email');
+            }))->orderBy('id', 'DESC')
+                ->get();
+        } catch (\Exception $e) {
+            return response()->json([
+                "data" => null,
+            ], 404, HeaderHelper::$header);
+        }
+        return response()->json([
+            "data" => $data,
+        ], 200, HeaderHelper::$header);
+    }
+
+    public function indexFromParams($user_id)
+    {
+        try {
+            $group_id = Group::select('id')->where('user_id', $user_id)->first();
+
+            $data = Church::with(array('group' => function($query) {
+                $query->select('id','name');
+            }))->with(array('user' => function($query) {
+                $query->select('id', 'email');
+            }))->where('group_id', $group_id->id)
+                ->select('id', 'name', 'user_id', 'group_id')
+                ->orderBy('id', 'DESC')
+                ->get();
+        } catch (\Exception $e) {
+            return response()->json([
+                "data" => null,
+            ], 404, HeaderHelper::$header);
+        }
+        return response()->json([
+            "data" => $data,
+        ], 200, HeaderHelper::$header);
     }
 
     public function nameAndCode()
@@ -46,48 +81,70 @@ class ChurchController extends Controller
         ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $codeGenerator = new CodeGenerator();
+
+        try {
+            if ($request->current_user_id == 1) {
+                Church::create([
+                    'name' => $request->name,
+                    'group_id' => $request->belongs_to_id,
+                    'user_id' => UserCRUD::create($request)->id,
+                    'code' => $codeGenerator->generator('CHURCHES')
+                ]);
+            }
+            else {
+                $group_id = Group::select('id')->where('user_id', $request->current_user_id)->first();
+                Church::create([
+                    'name' => $request->name,
+                    'group_id' => $group_id->id,
+                    'user_id' => UserCRUD::create($request)->id,
+                    'code' => $codeGenerator->generator('CHURCHES')
+                ]);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "response" => false
+            ], 200, HeaderHelper::$header);
+        }
+        return response()->json([
+            "response" => true
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Church  $church
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Church $church)
+    public function show($id)
     {
-        //
+        $data = Church::with(array('group' => function($query) {
+            $query->select('id','name');
+        }))->with(array('user' => function($query) {
+            $query->select('id', 'email');
+        }))->where('id', $id)
+            ->first();
+        return response()->json([
+            "data" => $data,
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Church  $church
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Church $church)
+    public function update(Request $request, Church $id)
     {
-        //
+        try {
+            $id->update([
+                'name' => $request->name,
+            ]);
+            UserCRUD::update($request);
+        } catch (\Exception $e) {
+            return response()->json([
+                'response' => false,
+            ],404, HeaderHelper::$header);
+        }
+        return response()->json([
+            "response" => true,
+        ], 200, HeaderHelper::$header);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Church  $church
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Church $church)
+    public function destroy(Church $id)
     {
-        //
+        UserCRUD::destroy($id);
     }
 }

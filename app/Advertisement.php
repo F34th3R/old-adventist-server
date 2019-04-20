@@ -15,6 +15,7 @@ class Advertisement extends Model
     protected $fillable = [
         'title',
         'code',
+        'parent_code',
         'department_id',
         'publicationDate',
         'eventDate',
