@@ -18,6 +18,7 @@ class CreateUnionsTable extends Migration
             $table->string('name')->unique();
             $table->string('code', 8)->unique();
             $table->unsignedInteger('user_id');
+            $table->boolean('deleted')->default('0');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('cascade');

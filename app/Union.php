@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 class Union extends Model
 {
     protected $table = "unions";
-    protected $fillable = ['name', 'code', 'user_id'];
+    protected $fillable = ['name', 'code', 'user_id', 'deleted'];
 
     public function groups()
     {

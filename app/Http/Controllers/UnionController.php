@@ -51,12 +51,12 @@ class UnionController extends Controller
     public function store(UnionRequest $request)
     {
         $codeGenerator = new CodeGenerator();
-
         try {
+            $code = $codeGenerator->generator('UNIONS');
             Union::create([
                 'name' => $request->name,
-                'user_id' => UserCRUD::create($request)->id,
-                'code' => $codeGenerator->generator('UNIONS')
+                'user_id' => UserCRUD::create($request, $code)->id,
+                'code' => $code
             ]);
         } catch (\Exception $e) {
             return response()->json([

@@ -86,12 +86,13 @@ class ChurchController extends Controller
         $codeGenerator = new CodeGenerator();
 
         try {
+            $code = $codeGenerator->generator('CHURCHES');
             if ($request->current_user_id == 1) {
                 Church::create([
                     'name' => $request->name,
                     'group_id' => $request->belongs_to_id,
-                    'user_id' => UserCRUD::create($request)->id,
-                    'code' => $codeGenerator->generator('CHURCHES')
+                    'user_id' => UserCRUD::create($request, $code)->id,
+                    'code' => $code
                 ]);
             }
             else {
@@ -99,8 +100,8 @@ class ChurchController extends Controller
                 Church::create([
                     'name' => $request->name,
                     'group_id' => $group_id->id,
-                    'user_id' => UserCRUD::create($request)->id,
-                    'code' => $codeGenerator->generator('CHURCHES')
+                    'user_id' => UserCRUD::create($request, $code)->id,
+                    'code' => $code
                 ]);
             }
         } catch (\Exception $e) {
@@ -128,6 +129,7 @@ class ChurchController extends Controller
 
     public function update(Request $request, Church $id)
     {
+        dd($request->getContent());
         try {
             $id->update([
                 'name' => $request->name,

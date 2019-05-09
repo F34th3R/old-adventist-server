@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 class Church extends Model
 {
     protected $table = "churches";
-    protected $fillable = ['name', 'code', 'group_id', 'user_id'];
+    protected $fillable = ['name', 'code', 'group_id', 'user_id', 'deleted'];
 
     public function group()
     {

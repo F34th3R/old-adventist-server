@@ -84,20 +84,21 @@ class GroupController extends Controller
 //        dd($request->getClientIp());
 //        dd($request->json());
         try {
+            $code = $codeGenerator->generator('GROUPS');
             if ($request->current_user_id == 1) {
                 Group::create([
                     'name' => $request->name,
                     'union_id' => $request->belongs_to_id,
-                    'user_id' => UserCRUD::create($request)->id,
-                    'code' => $codeGenerator->generator('GROUPS')
+                    'user_id' => UserCRUD::create($request, $code)->id,
+                    'code' => $code
                 ]);
             } else {
                 $union_id = Union::select('id')->where('user_id', $request->current_user_id)->first();
                 Group::create([
                     'name' => $request->name,
                     'union_id' => $union_id->id,
-                    'user_id' => UserCRUD::create($request)->id,
-                    'code' => $codeGenerator->generator('GROUPS')
+                    'user_id' => UserCRUD::create($request, $code)->id,
+                    'code' => $code
                 ]);
             }
         } catch (\Exception $e) {

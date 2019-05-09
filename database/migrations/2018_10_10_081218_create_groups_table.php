@@ -19,6 +19,7 @@ class CreateGroupsTable extends Migration
             $table->string('code', 8)->unique();
             $table->unsignedInteger('union_id');
             $table->unsignedInteger('user_id');
+            $table->boolean('deleted')->default('0');
             $table->timestamps();
 
             $table->foreign('union_id')->references('id')->on('unions')->onDelete('cascade')->onUpdate('cascade');

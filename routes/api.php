@@ -1,7 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
-
 Route::group(['prefix' => '/auth'], function () {
     // Route::post('login', 'AuthController@login');
     Route::post('login', 'Auth\AccessTokenController@issueToken');
@@ -10,17 +8,6 @@ Route::group(['prefix' => '/auth'], function () {
     Route::post('me', 'AuthController@me');
 
 });
-
-// Route::group(['prefix'  =>  '/advertisement'], function () {
-//     //? Show all the advertisements
-//     Route::get('/','AdvertisementController@index');
-
-//     //? search-filter for select whish advertisement is display
-//     Route::get('/filter/{user_id}','AdvertisementController@filter');
-    
-//     //? Display advertisment from the filter selection
-//     Route::get('/show/{department_id}','AdvertisementController@show');
-// });
 
 //! Unions
 Route::group(['middleware'  =>  ['auth:api']], function () {
@@ -73,37 +60,25 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
 //Advertisements
 Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::group(['prefix'  =>  '/advertisements'], function () {
-        Route::get('/', 'AdvertisementController@index');
-        Route::get('/{user_id}', 'AdvertisementController@indexFromParams');
+        Route::get('/', 'AdvertisementController@getAdvertisements');
         Route::post('', 'AdvertisementController@store');
         Route::put('/{id}', 'AdvertisementController@update');
         Route::delete('/{id}', 'AdvertisementController@destroy');
     });
-    Route::get('advertisement/{id}', 'AdvertisementController@show');
-    Route::post('advertisement/feather', 'AdvertisementController@searchAdvertisementByTypeAndId');
+    Route::post('advertisement', 'AdvertisementController@show');
 });
 
-// Route::group(['prefix'  =>  '/union'], function () {
-//     Route::get('/name_code','UnionController@nameAndCode');
-//     Route::get('/name_code_user/{user_id}','UnionController@nameAndCodeByUser');
-// });
+Route::group(['prefix'  =>  '/feather'], function () {
+    Route::post('/advertisements', 'AdvertisementController@index');
+});
 
-// Route::group(['prefix'  =>  '/group'], function () {
-//     //? Display the names and codes from the migration
-//     Route::get('/name_code','GroupController@nameAndCode');
-//     //? Display the same where user_id is like the input
-//     Route::get('/name_code_user/{user_id}','GroupController@nameAndCodeByUser');
-//     //? the same but union_id
-//     Route::get('/name_code_union/{union_id}','GroupController@nameAndCodeByUnion');
-// });
+Route::group(['prefix'  =>  '/search'], function () {
+    Route::post('/advertisements', 'FeatherController@searchAdvertisement');
+    Route::post('/users', 'FeatherController@searchUsers');
+});
 
-// Route::group(['prefix'  =>  '/church'], function () {
-//     //? is the same of the group api route
-//     Route::get('/name_code','ChurchController@nameAndCode');
-//     Route::get('/name_code_user/{user_id}','ChurchController@nameAndCodeByUser');
-//     Route::get('/name_code_group/{group_id}','ChurchController@nameAndCodeByGroup');
-// });
-
-// Route::group(['prefix'  =>  '/department'], function () {
-//     Route::get('/name_code','DepartmentController@nameAndCode');
-// });
+Route::group(['middleware'  =>  ['auth:api']], function () {
+    Route::group(['prefix'  =>  '/test'], function () {
+        Route::put('/ad/update/{id}', 'AdvertisementController@update');
+    });
+});

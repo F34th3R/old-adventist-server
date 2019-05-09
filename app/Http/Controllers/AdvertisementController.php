@@ -10,27 +10,71 @@ use App\Advertisement;
 use App\Department;
 use App\Http\Controllers\Helpers\storeAdvertisementImageHelper;
 use App\Image;
+use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class AdvertisementController extends Controller
 {
     public function index()
     {
-        $data = Advertisement::getAdvertisementsAll('id', 'DESC');
+//        try {
+//            $users = User::where([
+//                'id' => Auth::user()->id,
+//                'deleted' => 0
+//            ])->whereNotIn('role_id', [1, 2])->select('id','code')->get();
+//            if ($users[0]->code) {
+//                $data = Advertisement::where([
+//                    'published' => 1,
+//                    'parent_code' => Auth::user()->code
+//                ])->getAdvertisementsAll('id', 'DESC');
+//            } else {
+//                $data = Advertisement::getAdvertisementPublished()->getAdvertisementsAll('id', 'DESC');
+//            }
+//        } catch (\Exception $e) {
+//            return response()->json([
+//                "data" => [],
+//            ], 200, HeaderHelper::$header);
+//        }
+        return response()->json([
+            "data" => Advertisement::getAdvertisementPublished()->getAdvertisementsAll('id', 'DESC'),
+        ], 200, HeaderHelper::$header);
+    }
+    
+    public function getAdvertisements()
+    {
+        try {
+            if (Auth::user()->role_id == 1) {
+                $data = Advertisement::getAdvertisementsAll('id', 'DESC');
+            } else {
+                $helper = new Helper();
+                $department_id = [];
 
+                $user_department = Department::where('user_id', Auth::user()->id)->select('id')->get();
+                $department_id = $helper->departmentArray($department_id, $user_department);
+
+                $data = Advertisement::getAdvertisementMold($department_id, 'id', 'DESC');
+
+//              $data = Advertisement::getAdvertisementsAll('id', 'DESC')->where('id', $request->id);
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "data" => false,
+            ], 200, HeaderHelper::$header);
+        }
         return response()->json([
             "data" => $data,
         ], 200, HeaderHelper::$header);
     }
 
-    public function filter($user_id)
+    public function filter()
     {
         $department_id = [];
         $helper = new Helper();
 
         //? select all the ids where user_id is equals to the input (output = [])
-        $user_department = Department::select('id')->where('user_id', $user_id)->get();
+        $user_department = Department::select('id')->where('user_id', Auth::user()->id)->get();
         //? 
         $department_id = $helper->departmentArray($department_id, $user_department);
 
@@ -109,16 +153,32 @@ class AdvertisementController extends Controller
         ], 200);
     }
 
-    public function show(Advertisement $id)
+    public function show(Request $request)
     {
-        $data = Advertisement::with(array('department' => function($q) {
-            $q->select('id', 'name');
-        }))->with(array('image' => function($q) {
-            $q->select('id', 'path');
-        }))->where('id', $id)->get();
+        try {
+            $data = Advertisement::with(array('department' => function($q) {
+                $q->select('id', 'name', 'user_id')->with(array('user' => function($user) {
+                    $user->select('id', 'code', 'name', 'deleted');
+                }));
+            }))->with(array('image' => function($q) {
+                $q->select('id', 'path');
+            }))->where('id', $request->id)->get();
+            if ($data[0]->department->user->deleted != 0) {
+                $data = [];
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                "data" => [],
+            ], 200);
+        }
         return response()->json([
             "data" => $data,
         ], 200);
+    }
+
+    public function test(Request $request, Advertisement $id)
+    {
+        dd($request->getContent());
     }
 
     public function update(Request $request, Advertisement $id)
@@ -129,11 +189,6 @@ class AdvertisementController extends Controller
             'fragment' => 'required|min:5|max:80',
             'department_id' => 'required|numeric',
         ]);
-
-        $department = Department::with('user')->where('id', $request->department_id)->get();
-        $department_name = strtolower(preg_replace('/\s+/', '-', $department[0]->name));
-        $user_name = strtolower(preg_replace('/\s+/', '-', $department[0]->user->name));
-        $imageName = $department[0]->user->id.'__'.'f34th3r_'.str_random(30).'fth_jft'.$user_name.'_'.$department_name;
 
         try {
             if ($request->image_charge) {
@@ -152,24 +207,15 @@ class AdvertisementController extends Controller
             }
             else {
                 // Delete old image
-                // TODO
-//                Storage::delete('public/images/'.$request->path);
-
+                Storage::disk('ad_img')->delete($request->path);
 
                 // Save new Image
-                $exploded = explode(',', $request->image);
-                $decode = base64_decode($exploded[1]);
-                if (str_contains($exploded[0], 'jpeg')) { $extension = 'jpg'; }
-                else { $extension = 'png'; }
-                $fileName = $imageName.'_'.str_random().'.'.$extension;
-                $path = public_path('images/').$fileName;
-                file_put_contents($path, $decode);
-
+                $imageData = storeAdvertisementImageHelper::store($request);
                 Image::where('path', $request->path)->update([
-                    'name' => $imageName,
-                    'path' => $fileName
+                    'name' => $imageData['imageName'],
+                    'path' => $imageData['fileName'],
                 ]);
-                $image = Image::where('path', $fileName)->select('id')->get();
+                $image = Image::where('path', $imageData['fileName'])->select('id')->get();
                 $id->update([
                     'title' => $request->title,
                     'department_id' => $request->department_id,
@@ -195,7 +241,7 @@ class AdvertisementController extends Controller
         }
     }
 
-    public function destroy(Advertisement $id)
+    public function destroy($id)
     {
         dd($id->image());
         try {

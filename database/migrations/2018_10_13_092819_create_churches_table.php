@@ -19,6 +19,7 @@ class CreateChurchesTable extends Migration
             $table->string('code', 8)->unique();
             $table->unsignedInteger('group_id');
             $table->unsignedInteger('user_id');
+            $table->boolean('deleted')->default('0');
             $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups')->onDelete('cascade')->onUpdate('cascade');

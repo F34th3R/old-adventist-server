@@ -9,7 +9,7 @@ use App\Http\Controllers\Helpers\CodeGenerator;
 
 class UserCRUD
 {
-    public static function create(Request $request)
+    public static function create(Request $request, $code)
     {
         $codeGenerator = new CodeGenerator();
         $user = User::create([
@@ -17,7 +17,7 @@ class UserCRUD
             'email' =>$request->email,
             'password' => bcrypt($request->password),
             'role_id' => $request->role,
-            'code' => $codeGenerator->generator('USERS')
+            'code' => $code
         ]);
         return $user;
     }
