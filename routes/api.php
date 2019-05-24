@@ -72,13 +72,31 @@ Route::group(['prefix'  =>  '/feather'], function () {
     Route::post('/advertisements', 'AdvertisementController@index');
 });
 
-Route::group(['prefix'  =>  '/search'], function () {
-    Route::post('/advertisements', 'FeatherController@searchAdvertisement');
-    Route::post('/users', 'FeatherController@searchUsers');
+Route::group(['middleware'  =>  ['auth:api']], function () {
+    Route::group(['prefix'  =>  '/beta'], function () {
+        // Comments
+        Route::get('/comments', 'BetaController@indexComments');
+        Route::get('/comments/user', 'BetaController@userComments');
+        Route::post('/comments/', 'BetaController@createComment');
+        Route::put('/comments/{id}', 'BetaController@updateComment');
+        Route::delete('/comments{id}', 'BetaController@deleteComments');
+    });
+
+    Route::group(['prefix'  =>  '/user'], function () {
+        // Comments
+        Route::post('/change/username', 'UserController@changeUsername');
+        Route::post('/change/password', 'UserController@changePassword');
+        Route::post('/change/email', 'UserController@changeEmail');
+    });
 });
 
 Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::group(['prefix'  =>  '/test'], function () {
         Route::put('/ad/update/{id}', 'AdvertisementController@update');
     });
+});
+
+Route::group(['prefix'  =>  '/search'], function () {
+    Route::post('/advertisements', 'FeatherController@searchAdvertisement');
+    Route::post('/users', 'FeatherController@searchUsers');
 });
