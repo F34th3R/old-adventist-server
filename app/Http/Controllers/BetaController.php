@@ -45,7 +45,6 @@ class BetaController extends Controller
         ]);
         try {
             Comment::create([
-                'user_id' => Auth::user()->id,
                 'comment' => $request->comment
             ]);
         } catch (\Exception $e) {
@@ -62,7 +61,7 @@ class BetaController extends Controller
     {
         try {
             $id->update([
-                'comment' => $request->comment
+                'isComplete' => $request->complete
             ]);
         } catch (\Exception $e) {
             return response()->json([
