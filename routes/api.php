@@ -100,3 +100,7 @@ Route::group(['prefix'  =>  '/search'], function () {
     Route::post('/advertisements', 'FeatherController@searchAdvertisement');
     Route::post('/users', 'FeatherController@searchUsers');
 });
+
+Route::group(['prefix'  =>  '/public'], function () {
+    Route::get('/adv', 'PublicController@getAdvertisements');
+});
