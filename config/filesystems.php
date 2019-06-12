@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'default' => env('FILESYSTEM_DRIVER', 'local'),
+//    'default' => env('FILESYSTEM_DRIVER', 'local'),
+    'default' => env('FILESYSTEM_DRIVER', 'public'),
 
     /*
     |--------------------------------------------------------------------------
@@ -56,7 +57,10 @@ return [
         ],
         'ad_img' => [
             'driver' => 'local',
-            'root'   => public_path() . '/images-advertisements',
+//            'root'   => public_path() . '/images-advertisements',
+            'root'   => storage_path('app/public/images-advertisements'),
+            'url' => env('APP_URL').'/storage/public/images-advertisements',
+            'visibility' => 'public',
         ],
 
         's3' => [

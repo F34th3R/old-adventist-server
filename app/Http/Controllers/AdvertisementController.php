@@ -183,7 +183,6 @@ class AdvertisementController extends Controller
 
     public function update(Request $request, Advertisement $id)
     {
-//        dd($request);
         $this->validate($request, [
             'title' => 'required|min:5',
             'description' => 'required|min:5',
