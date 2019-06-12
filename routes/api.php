@@ -1,12 +1,11 @@
 <?php
 
 Route::group(['prefix' => '/auth'], function () {
-    // Route::post('login', 'AuthController@login');
+    //* Login
     Route::post('login', 'Auth\AccessTokenController@issueToken');
     Route::post('logout', 'AuthController@logout');
     Route::post('refresh', 'AuthController@refresh');
     Route::post('me', 'AuthController@me');
-
 });
 
 //! Unions
@@ -93,6 +92,7 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
 Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::group(['prefix'  =>  '/test'], function () {
         Route::put('/ad/update/{id}', 'AdvertisementController@update');
+        Route::delete('/ad/destroy/{id}', 'AdvertisementController@destroy');
     });
 });
 

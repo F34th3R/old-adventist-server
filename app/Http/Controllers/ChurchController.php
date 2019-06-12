@@ -84,7 +84,6 @@ class ChurchController extends Controller
     public function store(Request $request)
     {
         $codeGenerator = new CodeGenerator();
-
         try {
             $code = $codeGenerator->generator('CHURCHES');
             if ($request->current_user_id == 1) {
@@ -129,7 +128,6 @@ class ChurchController extends Controller
 
     public function update(Request $request, Church $id)
     {
-        dd($request->getContent());
         try {
             $id->update([
                 'name' => $request->name,

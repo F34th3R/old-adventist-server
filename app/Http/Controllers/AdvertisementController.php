@@ -112,7 +112,7 @@ class AdvertisementController extends Controller
         try {
             $this->validate($request, [
                 'title' => 'required|min:5',
-                'description' => 'required|min:5|max:1000',
+                'description' => 'required|min:5',
                 'fragment' => 'required|min:5|max:80',
                 'department_id' => 'required|numeric',
                 'parent_code' => 'required',
@@ -183,13 +183,13 @@ class AdvertisementController extends Controller
 
     public function update(Request $request, Advertisement $id)
     {
+//        dd($request);
         $this->validate($request, [
             'title' => 'required|min:5',
-            'description' => 'required|min:5|max:1000',
+            'description' => 'required|min:5',
             'fragment' => 'required|min:5|max:80',
             'department_id' => 'required|numeric',
         ]);
-
         try {
             if ($request->image_charge) {
                 $id->update([
@@ -243,10 +243,13 @@ class AdvertisementController extends Controller
 
     public function destroy($id)
     {
-        dd($id->image());
         try {
-            Storage::disk('ad_img')->delete('CHEf9l_DIlLTM__f34th3r.io_9sLgq9vbY6GtK4nABcRjoUGFaBp9Xf.jpg');
-            $id->delete();
+            $image_id = Advertisement::where('id', $id)->select('image_id')->get();
+            $image_path = Image::where('id', $image_id[0]->image_id)->get();
+            Storage::disk('ad_img')->delete($image_path[0]->path);
+            Image::where('id', $image_id[0]->image_id)->delete();
+            $ad = Advertisement::where('id', $id);
+            $ad->delete();
         }
         catch (\Exception $e) {
             return response()->json([

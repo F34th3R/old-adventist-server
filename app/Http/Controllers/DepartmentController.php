@@ -127,8 +127,9 @@ class DepartmentController extends Controller
         ], 200, HeaderHelper::$header);
     }
 
-    public function destroy(Department $id)
+    public function destroy($id)
     {
-        UserCRUD::destroy($id);
+        $department = Department::findOrFail($id);
+        $department->delete();
     }
 }
