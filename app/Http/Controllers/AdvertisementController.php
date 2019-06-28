@@ -135,9 +135,9 @@ class AdvertisementController extends Controller
                 'description' => $request->description,
                 'published' => $request->published,
                 'image_id' => $image->id,
-                'time' => $request->time,
-                'place' => $request->place,
-                'guest' => $request->guest,
+                'time' => $request->time == 'feather_empty' ? '' : $request->time,
+                'place' => $request->place == 'feather_empty' ? '' : $request->place,
+                'guest' => $request->guest == 'feather_empty' ? '' : $request->guest,
             ]);
         }
         catch (\Exception $e) {
@@ -174,11 +174,6 @@ class AdvertisementController extends Controller
         return response()->json([
             "data" => $data,
         ], 200);
-    }
-
-    public function test(Request $request, Advertisement $id)
-    {
-        dd($request->getContent());
     }
 
     public function update(Request $request, Advertisement $id)

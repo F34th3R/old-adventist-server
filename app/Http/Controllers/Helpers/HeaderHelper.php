@@ -9,4 +9,7 @@ class HeaderHelper {
     public static $header = [
         "Feather" => "This Belongs To f34th3r.io",
     ];
+    public static $cors = [
+        "Access-Control-Allow-Origin:" => '*'
+    ];
 }

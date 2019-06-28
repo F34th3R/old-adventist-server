@@ -17,10 +17,10 @@ class CorsMiddleware
     {
         header("Access-Control-Allow-Origin: *");
 
-        // $headers = [
-        // 'Access-Control-Allow-Methods'=> 'POST, GET, OPTIONS, PUT, DELETE',
-        // 'Access-Control-Allow-Headers'=> 'Content-Type, X-Auth-Token, Origin, Authorization'
-        // ];
+//        $headers = [
+//            'Access-Control-Allow-Methods'=> 'POST, GET, OPTIONS, PUT, DELETE',
+//            'Access-Control-Allow-Headers'=> 'Content-Type, X-Auth-Token, Origin, Authorization'
+//        ];
         $headers = [
             'Access-Control-Allow-Methods'=> 'POST, GET, OPTIONS, PUT, DELETE',
             'Access-Control-Allow-Headers'=> 'Content-Type, X-Auth-Token, Origin'
@@ -35,9 +35,5 @@ class CorsMiddleware
             $response->header($key, $value);
 
         return $response;
-
-        // return $next($request)
-        // ->header('Access-Control-Allow-Origin:  *')
-        // ->header('Access-Control-Allow-Methods:  POST, GET, OPTIONS, PUT, DELETE');
     }
 }

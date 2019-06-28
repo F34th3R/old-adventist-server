@@ -15,7 +15,6 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
         Route::get('/{id}', 'UnionController@show');
         Route::post('/', 'UnionController@store');
         Route::put('/{id}', 'UnionController@update');
-        // Route::put('/{id}', array('middleware' => 'cors', 'uses' => 'UnionController@update'));
         Route::delete('/{id}', 'UnionController@destroy');
     });
 });
@@ -56,43 +55,34 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::get('department/{id}', 'DepartmentController@show');
 });
 
-//Advertisements
+// ! News
 Route::group(['middleware'  =>  ['auth:api']], function () {
-    Route::group(['prefix'  =>  '/advertisements'], function () {
+    Route::group(['prefix'  =>  '/news'], function () {
         Route::get('/', 'AdvertisementController@getAdvertisements');
-        Route::post('', 'AdvertisementController@store');
+        Route::post('/', 'AdvertisementController@store');
         Route::put('/{id}', 'AdvertisementController@update');
         Route::delete('/{id}', 'AdvertisementController@destroy');
     });
     Route::post('advertisement', 'AdvertisementController@show');
 });
 
-Route::group(['prefix'  =>  '/feather'], function () {
-    Route::post('/advertisements', 'AdvertisementController@index');
-});
-
 Route::group(['middleware'  =>  ['auth:api']], function () {
-    Route::group(['prefix'  =>  '/beta'], function () {
-        // Comments
-        Route::get('/comments', 'BetaController@indexComments');
-        Route::get('/comments/user', 'BetaController@userComments');
-        Route::post('/comments/', 'BetaController@createComment');
-        Route::put('/comments/{id}', 'BetaController@updateComment');
-        Route::delete('/comments{id}', 'BetaController@deleteComments');
-    });
-
-    Route::group(['prefix'  =>  '/user'], function () {
-        // Comments
+    Route::group(['prefix'  =>  '/settings'], function () {
         Route::post('/change/username', 'UserController@changeUsername');
         Route::post('/change/password', 'UserController@changePassword');
         Route::post('/change/email', 'UserController@changeEmail');
+
+
     });
 });
 
 Route::group(['middleware'  =>  ['auth:api']], function () {
-    Route::group(['prefix'  =>  '/test'], function () {
-        Route::put('/ad/update/{id}', 'AdvertisementController@update');
-        Route::delete('/ad/destroy/{id}', 'AdvertisementController@destroy');
+    Route::group(['prefix'  =>  '/comments'], function () {
+        Route::get('/list', 'CommentController@index');
+//        Route::get('/comments/user', 'CommentController@userComments');
+        Route::post('/store', 'CommentController@store');
+//        Route::put('/comments/{id}', 'CommentController@updateComment');
+//        Route::delete('/comments{id}', 'CommentController@deleteComments');
     });
 });
 

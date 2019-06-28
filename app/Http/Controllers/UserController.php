@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Helpers\HeaderHelper;
 use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -23,16 +24,16 @@ class UserController extends Controller
             } else {
                 return response()->json([
                     "data" => false,
-                ], 200);
+                ], 200, HeaderHelper::$header);
             }
         } catch (\Exception $e) {
             return response()->json([
                 "data" => false,
-            ], 200);
+            ], 200, HeaderHelper::$header);
         }
         return response()->json([
             "data" => true,
-        ], 200);
+        ], 200, HeaderHelper::$header);
     }
 
     public function changeEmail(Request $request)
@@ -49,42 +50,43 @@ class UserController extends Controller
             } else {
                 return response()->json([
                     "data" => false,
-                ], 200);
+                ], 200, HeaderHelper::$header);
             }
         } catch (\Exception $e) {
             return response()->json([
                 "data" => false,
-            ], 200);
+            ], 200, HeaderHelper::$header);
         }
         return response()->json([
             "data" => true,
-        ], 200);
+        ], 200, HeaderHelper::$header);
     }
 
     public function changePassword(Request $request)
     {
-        // $2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm
-        try
+        $real_pwd = User::find(Auth::user()->id)->password;
+        $pwd_old = $request->pwd_old;
+        $isPass = Hash::check($pwd_old, $real_pwd);
+        if ($isPass)
         {
-            $real_pwd = User::find(Auth::user()->id)->password;
-            $pwd_old = $request->pwd_old;
-            if (Hash::check($pwd_old, $real_pwd))
+            try
             {
                 User::find(Auth::user()->id)->update([
                     'password' => bcrypt($request->pwd_new),
                 ]);
-            } else {
+            } catch (\Exception $e) {
                 return response()->json([
-                    "data" => false,
-                ], 200);
+                    "response" => false,
+                ], 404, HeaderHelper::$header);
             }
-        } catch (\Exception $e) {
             return response()->json([
-                "data" => false,
-            ], 200);
+                "response" => true,
+            ], 200, HeaderHelper::$header);
+        } else {
+            return response()->json([
+                "response" => false,
+            ], 200, HeaderHelper::$header);
         }
-        return response()->json([
-            "data" => true,
-        ], 200);
+
     }
 }
