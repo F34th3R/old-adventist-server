@@ -92,5 +92,16 @@ Route::group(['prefix'  =>  '/search'], function () {
 });
 
 Route::group(['prefix'  =>  '/public'], function () {
+    //? show all advertisement
     Route::get('/adv', 'PublicController@getAdvertisements');
+    //? show one advertisement by code
+    Route::post('/adv/show', 'PublicController@showAdvertisement');
+    //? show one [Union, Group, church] by code
+    Route::post('/adv/belongs', 'PublicController@belongsAdvertisements');
+    //? show all the following by user's codes
+    Route::post('/adv/favorite', 'PublicController@favoriteAdvertisement');
+    //? show all the bookmarks by advertisement's code
+    Route::post('/adv/bookmarks', 'PublicController@bookmarksAdvertisement');
+    Route::post('/adv/search', 'PublicController@searchAdvertisement');
+    Route::post('/adv/search/user', 'PublicController@searchUserAdvertisement');
 });
