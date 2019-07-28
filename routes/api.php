@@ -23,6 +23,7 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
 Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::group(['prefix'  =>  '/groups'], function () {
         Route::get('/', 'GroupController@index');
+        // TODO delete this route!
         Route::get('/{id}', 'GroupController@indexFromParams');
         Route::post('/', 'GroupController@store');
         Route::put('/{id}', 'GroupController@update');

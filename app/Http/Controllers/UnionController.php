@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Helpers\HeaderHelper;
-use App\Http\Controllers\Helpers\CodeGenerator;
+use App\Http\Controllers\Helpers\GeneratorHelper;
 use App\Http\Controllers\Helpers\UserCRUD;
 
 use App\Http\Requests\UnionRequest;
 use App\Union;
-use App\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UnionController extends Controller
 {
@@ -50,14 +51,14 @@ class UnionController extends Controller
 
     public function store(UnionRequest $request)
     {
-        $codeGenerator = new CodeGenerator();
         try {
-            $code = $codeGenerator->generator('UNIONS');
+            $code = GeneratorHelper::code('UNION');
             Union::create([
                 'name' => $request->name,
-                'user_id' => UserCRUD::create($request, $code)->id,
+                'user_id' => UserCRUD::create($request, $code, '3')->id,
                 'code' => $code
             ]);
+            Storage::disk('advertisement_image')->makeDirectory($code);
         } catch (\Exception $e) {
             return response()->json([
                 'response' => false,
@@ -70,9 +71,9 @@ class UnionController extends Controller
 
     public function show($id)
     {
-        $data = Union::with(array('user' => function($query) {
+        $data = Union::with(['user' => function($query) {
             $query->select('id', 'email');
-        }))->where('id', $id)
+        }])->where('id', $id)
             ->first();
         return response()->json([
             "data" => $data,
@@ -81,6 +82,7 @@ class UnionController extends Controller
 
     public function update(Request $request, Union $id)
     {
+        // TODO update password too
         try {
             $id->update([
                 'name' => $request->name,

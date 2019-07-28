@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Helpers\AdvertisementHelper as Helper;
-use App\Http\Controllers\Helpers\CodeGenerator;
+use App\Http\Controllers\Helpers\IteratorHelper as Helper;
+use App\Http\Controllers\Helpers\IteratorHelper;
+use App\Http\Controllers\Helpers\GeneratorHelper;
 use App\Http\Controllers\Helpers\HeaderHelper;
 
 use App\Advertisement;
 use App\Department;
-use App\Http\Controllers\Helpers\storeAdvertisementImageHelper;
+use App\Http\Controllers\Helpers\ImageHelper;
 use App\Image;
-use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -48,15 +48,8 @@ class AdvertisementController extends Controller
             if (Auth::user()->role_id == 1) {
                 $data = Advertisement::getAdvertisementsAll('id', 'DESC');
             } else {
-                $helper = new Helper();
-                $department_id = [];
-
                 $user_department = Department::where('user_id', Auth::user()->id)->select('id')->get();
-                $department_id = $helper->departmentArray($department_id, $user_department);
-
-                $data = Advertisement::getAdvertisementMold($department_id, 'id', 'DESC');
-
-//              $data = Advertisement::getAdvertisementsAll('id', 'DESC')->where('id', $request->id);
+                $data = Advertisement::getAdvertisementMold(IteratorHelper::iterator_Id($user_department), 'id', 'DESC');
             }
         } catch (\Exception $e) {
             return response()->json([
@@ -68,47 +61,8 @@ class AdvertisementController extends Controller
         ], 200, HeaderHelper::$header);
     }
 
-    public function filter()
-    {
-        $department_id = [];
-        $helper = new Helper();
-
-        //? select all the ids where user_id is equals to the input (output = [])
-        $user_department = Department::select('id')->where('user_id', Auth::user()->id)->get();
-        //? 
-        $department_id = $helper->departmentArray($department_id, $user_department);
-
-        $advertisement = Advertisement::getAdvertisementMold($department_id, 'id', 'DESC');
-
-        return response()->json([
-            "data" => $advertisement
-        ], 200, HeaderHelper::$header);
-    }
-
-    public function searchAdvertisements(Request $request)
-    {
-        $department_id = [];
-        $helper = new Helper();
-
-        switch ($request->type)
-        {
-            case "union": 
-                $union_user_id = Union::getUnionUserId($request->id);
-                $union_department = $helper->getUnionDepartmentId('user_id', $union_user_id[0]->user_id);
-
-                $department_id = $helper->departmentArray($department_id, $union_department );
-
-                $advertisement = Advertisement::getAdvertisementPublished()->getAdvertisementModel($department_id);
-
-                return response()->json([
-                    "data" => $advertisement,
-                ], 200);
-        }
-    }
-
     public function store(Request $request)
     {
-        $codeGenerator = new CodeGenerator();
         try {
             $this->validate($request, [
                 'title' => 'required|min:5',
@@ -118,14 +72,14 @@ class AdvertisementController extends Controller
                 'parent_code' => 'required',
             ]);
 
-            $imageData = storeAdvertisementImageHelper::store($request);
+            $imageData = ImageHelper::store($request->input('image'), $request->input('department_id'));
             $image = Image::create([
-                'name' => $imageData['imageName'],
-                'path' => $imageData['fileName'],
+                'name' => $imageData['name'],
+                'path' => $imageData['path'],
                 'tag' => 'ad-image'
             ]);
             Advertisement::create([
-                'code' => $codeGenerator->generator('ADVERTISEMENTS'),
+                'code' => GeneratorHelper::code('ADVERTISEMENT'),
                 'title' => $request->title,
                 'parent_code' => $request->parent_code,
                 'department_id' => $request->department_id,
@@ -143,7 +97,7 @@ class AdvertisementController extends Controller
         catch (\Exception $e) {
             $img = Image::find($image->id);
             $img->delete();
-            Storage::disk('ad_img')->delete($imageData['fileName']);
+            Storage::disk('advertisement_image')->delete($imageData['path']);
             return response()->json([
                 'response' => false,
             ],404);
@@ -204,10 +158,10 @@ class AdvertisementController extends Controller
                 Storage::disk('ad_img')->delete($request->path);
 
                 // Save new Image
-                $imageData = storeAdvertisementImageHelper::store($request);
+                $imageData = ImageHelper::store($request->input('image'), $request->input('department_id'));
                 Image::where('path', $request->path)->update([
-                    'name' => $imageData['imageName'],
-                    'path' => $imageData['fileName'],
+                    'name' => $imageData['name'],
+                    'path' => $imageData['path'],
                 ]);
                 $image = Image::where('path', $imageData['fileName'])->select('id')->get();
                 $id->update([
@@ -238,9 +192,9 @@ class AdvertisementController extends Controller
     public function destroy($id)
     {
         try {
-            $image_id = Advertisement::where('id', $id)->select('image_id')->get();
-            $image_path = Image::where('id', $image_id[0]->image_id)->get();
-            Storage::disk('ad_img')->delete($image_path[0]->path);
+            $image_id = Advertisement::select('image_id')->where('id', $id)->select('image_id')->get();
+            $image_path = Image::select('path')->where('id', $image_id[0]->image_id)->get();
+            Storage::disk('advertisement_image')->delete($image_path[0]->path);
             Image::where('id', $image_id[0]->image_id)->delete();
             $ad = Advertisement::where('id', $id);
             $ad->delete();

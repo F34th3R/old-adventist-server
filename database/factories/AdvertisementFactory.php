@@ -5,7 +5,7 @@ use Faker\Generator as Faker;
 $factory->define(App\Advertisement::class, function (Faker $faker) {
     return [
         'title' => $faker->sentence($nbWords = 6, $variableNbWords = true),
-        'code' => 'A' . $faker->unique()->numberBetween($min = 100000000, $max = 999999999),
+        'code' => 'A' . $faker->unique()->numberBetween($min = 1000, $max = 9999),
         'department_id' => $faker->numberBetween($min = 1, $max = 800),
         'publicationDate' => $faker->date($format = 'd-m-Y', $max = 'now'),
         'eventDate' => $faker->date($format = 'd-m-Y', $max = 'now'),

@@ -54,12 +54,18 @@ return [
             'root' => storage_path('app/public'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
-        ],
+        ], // advertisement_image
         'ad_img' => [
             'driver' => 'local',
 //            'root'   => public_path() . '/images-advertisements',
             'root'   => storage_path('app/public/images-advertisements'),
             'url' => env('APP_URL').'/storage/public/images-advertisements',
+            'visibility' => 'public',
+        ],
+        'advertisement_image' => [
+            'driver' => 'local',
+            'root'   => storage_path('app/public/images'),
+            'url' => env('APP_URL').'/storage/public/images',
             'visibility' => 'public',
         ],
 
