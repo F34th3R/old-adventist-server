@@ -23,7 +23,7 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
 Route::group(['middleware'  =>  ['auth:api']], function () {
     Route::group(['prefix'  =>  '/groups'], function () {
         Route::get('/', 'GroupController@index');
-        // TODO delete this route!
+        // TODO delete this route! after update client
         Route::get('/{id}', 'GroupController@indexFromParams');
         Route::post('/', 'GroupController@store');
         Route::put('/{id}', 'GroupController@update');
@@ -72,8 +72,6 @@ Route::group(['middleware'  =>  ['auth:api']], function () {
         Route::post('/change/username', 'UserController@changeUsername');
         Route::post('/change/password', 'UserController@changePassword');
         Route::post('/change/email', 'UserController@changeEmail');
-
-
     });
 });
 

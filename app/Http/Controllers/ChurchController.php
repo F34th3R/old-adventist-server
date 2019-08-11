@@ -12,6 +12,7 @@ use App\Union;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 
 class ChurchController extends Controller
 {
@@ -47,8 +48,8 @@ class ChurchController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "data" => null,
-            ], 404, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "data" => $data,
@@ -62,7 +63,7 @@ class ChurchController extends Controller
             if (Auth::user()->role_id == '1') {
                 $data = Church::with(['group' => function($query) {
                     $query->select('id','name');
-                    }])
+                }])
                     ->with(['user' => function($query) {
                         $query->select('id', 'email');
                     }])
@@ -83,8 +84,8 @@ class ChurchController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "data" => null,
-            ], 404, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "data" => $data,
@@ -104,6 +105,17 @@ class ChurchController extends Controller
          *  - belongs_to = group_id = nullable if not an administrator
          */
         try {
+            $validator = Validator::make($request->all(),[
+                'name' => 'required|min:5|unique:users,name',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|min:5',
+            ]);
+            if($validator->messages()->first()) {
+                return response()->json([
+                    "response" => $validator->messages()
+                ], 400 , HeaderHelper::$header);
+            }
+
             $code = GeneratorHelper::code('CHURCH');
             $user_id = UserCRUD::create($request, $code, '5')->id;
             if ($request->current_user_id == 1) {
@@ -127,8 +139,8 @@ class ChurchController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "response" => false
-            ], 200, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "response" => true
@@ -141,12 +153,24 @@ class ChurchController extends Controller
          * The request contain:
          *  - id = church_id
          */
-        $data = Church::with(array('group' => function($query) {
-            $query->select('id','name');
-        }))->with(array('user' => function($query) {
-            $query->select('id', 'email');
-        }))->where('id', $id)
-            ->first();
+        try {
+            if (!Church::where('id', $id)->exists()) {
+                return response()->json([
+                    "error" => "The current id: $id don't exists.",
+                ], 404, HeaderHelper::$header);
+            }
+            $data = Church::with(array('group' => function($query) {
+                $query->select('id','name');
+            }))->with(array('user' => function($query) {
+                $query->select('id', 'email');
+            }))->where('id', $id)
+                ->first();
+        } catch (\Exception $e) {
+            return response()->json([
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
+        }
+
         return response()->json([
             "data" => $data,
         ], 200, HeaderHelper::$header);
@@ -167,8 +191,8 @@ class ChurchController extends Controller
             UserCRUD::update($request);
         } catch (\Exception $e) {
             return response()->json([
-                'response' => false,
-            ],404, HeaderHelper::$header);
+                'error' => $e,
+            ],500, HeaderHelper::$header);
         }
         return response()->json([
             "response" => true,
@@ -181,6 +205,18 @@ class ChurchController extends Controller
          * The request contain:
          *  - id = church_id
          */
-        UserCRUD::destroy($id);
+        try {
+            if (!$id->exists()) {
+                return response()->json([
+                    "error" => "The current id: $id does't  exists.",
+                ], 404, HeaderHelper::$header);
+            }
+            UserCRUD::destroy($id);
+        } catch (\Exception $e) {
+            return response()->json([
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
+        }
+        return response()->json([],200, HeaderHelper::$header);
     }
 }

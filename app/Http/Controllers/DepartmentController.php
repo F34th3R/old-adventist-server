@@ -42,8 +42,8 @@ class DepartmentController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "data" => null,
-            ], 404, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "data" => $data,
@@ -56,7 +56,7 @@ class DepartmentController extends Controller
             if (Auth::user()->role_id == '1') {
                 $data = Department::with(['user' => function($query) {
                     $query->select('id', 'name', 'email');
-                    }])
+                }])
                     ->orderBy('id', 'DESC')
                     ->get();
             } else {
@@ -70,8 +70,8 @@ class DepartmentController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "data" => null,
-            ], 404, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "data" => $data,
@@ -108,8 +108,8 @@ class DepartmentController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                "response" => false
-            ], 200, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "response" => true
@@ -122,13 +122,25 @@ class DepartmentController extends Controller
          * The request contain:
          *  - id = department_id
          */
-        $data = Department::select('id', 'name', 'user_id')
-            ->where('id', $id)
-            ->with(['user' => function($query) {
-                $query->select('id', 'name', 'email');
-            }])
-            ->orderBy('id', 'DESC')
-            ->first();
+        try {
+            if (!Department::where('id', $id)->exists()) {
+                return response()->json([
+                    "error" => "The current id: $id does't  exists.",
+                ], 404, HeaderHelper::$header);
+            }
+            $data = Department::select('id', 'name', 'user_id')
+                ->where('id', $id)
+                ->with(['user' => function($query) {
+                    $query->select('id', 'name', 'email');
+                }])
+                ->orderBy('id', 'DESC')
+                ->first();
+        } catch (\Exception $e) {
+            return response()->json([
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
+        }
+
         return response()->json([
             "data" => $data,
         ], 200, HeaderHelper::$header);
@@ -161,8 +173,8 @@ class DepartmentController extends Controller
             }
         } catch (\Exception $e) {
             return response()->json([
-                'response' => false,
-            ],404, HeaderHelper::$header);
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
         }
         return response()->json([
             "response" => true,
@@ -171,7 +183,20 @@ class DepartmentController extends Controller
 
     public function destroy(Department $id)
     {
-        FolderHelper::createDelete($id->code, false);
-        $id->delete();
+        try {
+            if (!Department::where('code', $id->code)->exists()) {
+                return response()->json([
+                    "error" => "The current id: {$id->id} does't  exists.",
+                ], 404, HeaderHelper::$header);
+            }
+            FolderHelper::createDelete($id->code, false);
+            $id->delete();
+        } catch (\Exception $e) {
+            return response()->json([
+                "error" => $e,
+            ], 500, HeaderHelper::$header);
+        }
+        return response()->json([],200, HeaderHelper::$header);
+
     }
 }
